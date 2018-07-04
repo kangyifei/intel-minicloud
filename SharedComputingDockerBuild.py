@@ -2,7 +2,8 @@ import shutil
 import subprocess
 import os
 
-
+##构建共享算力镜像
+#TODO:写共享算力镜像的基础镜像Dockerfile
 class sharedComputing(object):
     def __init__(self,codefile_path,datafolder_path):
                 self.codefile_path=codefile_path

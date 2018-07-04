@@ -1,6 +1,6 @@
 import subprocess
 
-
+##直接通过dockerfile构建
 class DirectlyDocker(object):
 
     def __init__(self, dockerfile_path=None):
@@ -13,7 +13,6 @@ class DirectlyDocker(object):
             pipe = subprocess.Popen("docker build -f " + self.dockerfile_path, shell=True)
             pipe.wait()
             res = pipe.stdout.readlines()
-            success = False
             for line in res:
                 i = line.find("Successfully built")
                 if (i!=-1):
