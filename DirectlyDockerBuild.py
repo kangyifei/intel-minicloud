@@ -10,7 +10,7 @@ class DirectlyDocker(object):
     def build(self):
         times = 0
         while (times < 3):
-            pipe = subprocess.Popen("docker build -f " + self.dockerfile_path, shell=True)
+            pipe = subprocess.Popen("docker build  " + self.dockerfile_path, shell=True)
             pipe.wait()
             res = pipe.stdout.readlines()
             for line in res:

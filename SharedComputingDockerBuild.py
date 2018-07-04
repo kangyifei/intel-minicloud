@@ -9,14 +9,12 @@ class sharedComputing(object):
                 self.codefile_path=codefile_path
                 self.datafolder_path=datafolder_path
     def build(self):
-        basetxt=""
-        dockerfile=open("./temp/Dockerfile","w")
-        dockerfile.write(basetxt)
+        shutil.copy("./BaseDockerfile","./temp/Dockerfile")
         dockerfile_path=os.getcwd()+"/temp"
         shutil.copy(self.codefile_path,"./temp/cal.py")
         times = 0
         while (times < 3):
-            pipe = subprocess.Popen("docker build -f ./temp", shell=True)
+            pipe = subprocess.Popen("docker build ./temp", shell=True)
             pipe.wait()
             res = pipe.stdout.readlines()
             for line in res:

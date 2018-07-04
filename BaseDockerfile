@@ -1,0 +1,6 @@
+FROM Ubuntu:16.04
+ADD cal.py 
+RUN apt-get update
+RUN apt-get install python3
+RUN pip install numpy
+ENTRYPONINT["python","cal.py"]
