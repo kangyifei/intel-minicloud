@@ -1,26 +1,24 @@
+import shutil
 import sys
-import TcpClient
 import docker
 import psutil
 import time
 import requests
 
 BASE_URL = 'http://127.0.0.1:5000'
+MANAGER_ADDR="192.168.1.145:2377"
 
 if __name__ == '__main__':
-    # client=docker.from_env()
-    # if not client.swarm.join(remote_addrs=["192.168.1.145:2377"]):
-    #     sys.exit("swarm init failed")
-    # tcp_client=TcpClient.TcpClient("192.168.1.145","5321")
-    # tcp_client.run()
-    while(1):
-        # tcp_client.send({"cpu":psutil.cpu_percent(interval=1)})
-
+    client = docker.from_env()
+    if not client.swarm.join(remote_addrs=[MANAGER_ADDR]):
+        sys.exit("swarm init failed")
+    while (1):
         info = {
-            'id': 1,
-            'cpu': 23.5,
-            'memory': 256,
-            'hdd': 25.6
+            'id': client.info()['Swarm']['NodeID'],
+            'time':int(time.time()),
+            'cpu': psutil.cpu_percent(interval=1),
+            'memory': psutil.virtual_memory().percent,
+            'hdd': psutil.disk_usage("/").percent
         }
 
         # 向服务器发送消息
@@ -28,4 +26,4 @@ if __name__ == '__main__':
 
         print(status.text)
 
-        time.sleep(1)
+        time.sleep(5)

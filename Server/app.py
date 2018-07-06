@@ -16,9 +16,10 @@ import hashlib
 import os
 
 
-# 存储当前cpu负载的全局变量，键值对的形式存储，{id: cpuload}，使用cpuLoadCurrent['$id'] 即可访问$id的CPU负载
-cpuLoadCurrent = {}
+# 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
+from Server.GBRT.GBRT import GBRT
 
+nodeGBRT={}
 
 
 app = Flask(__name__)
@@ -51,13 +52,18 @@ class RESTNodeInfo(Resource):
     # 通过post上传节点信息，python中使用 request.post即可上传
     def post(self):
         id = request.form['id']
+        time=request.form['time']
         cpu = request.form['cpu']
         memory = request.form['memory']
         hdd = request.form['hdd']
-
         print(cpu, memory, hdd)
-
-        cpuLoadCurrent[id] = cpu
+        ##利用新上传的cpu负载训练模型
+        if id in nodeGBRT:
+            nodeGBRT[id].update(time,cpu)
+        else:
+            nodeGBRT[id]=GBRT(n_trees=100)
+            nodeGBRT[id].update(time, cpu)
+        ##结束
 
         return {'msg': 'success'}
 
@@ -71,11 +77,11 @@ api.add_resource(RESTNodeInfo, '/nodeinfo')
 # ===================================================
 
 if __name__ == '__main__':
-    # client = docker.from_env()
-    # if not client.swarm.init(advertise_addr="192.168.1.145:2377"):
-    #     sys.exit("swarm init failed")
-    # swarm_attr=client.swarm.attrs
-    # worker_token=swarm_attr['JoinTokens']['Worker']
-
+    client = docker.from_env()
+    if not client.swarm.init(advertise_addr="192.168.1.145:2377"):
+        sys.exit("swarm init failed")
+    swarm_attr=client.swarm.attrs
+    worker_token=swarm_attr['JoinTokens']['Worker']
+    print("Worker_Token： "+worker_token)
     app.run(host="0.0.0.0", port=5000, debug=True)
 
