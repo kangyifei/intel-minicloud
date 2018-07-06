@@ -12,6 +12,9 @@ import os
 
 parser=reqparse.RequestParser()
 parser.add_argument('type',type=str)
+
+# redis内存数据库用作进程通信
+sessionPool=redis.Redis(host='localhost',port=6379)#内存会话记录
 # ===========================================
 #测试
 class RESTExample(Resource):
@@ -19,4 +22,21 @@ class RESTExample(Resource):
         return {'msg': 'ok example'}
 
     def post(self):
-        abort(400) # ??????????
+        abort(400) # 取消
+
+
+# 上传节点信息
+class RESTNodeInfo(Resource):
+    def get(self):
+        pass
+    
+    # 通过post上传节点信息，python中使用 request.post即可上传
+    def post(self):
+        id = request.form['id']
+        cpu = request.form['cpu']
+        memory = request.form['memory']
+        hdd = request.form['hdd']
+
+        print(cpu, memory, hdd)
+
+        return {'msg': 'success'}
