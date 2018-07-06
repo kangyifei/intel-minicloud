@@ -16,6 +16,10 @@ import hashlib
 import os
 
 
+# 存储当前cpu负载的全局变量，键值对的形式存储，{id: cpuload}，使用cpuLoadCurrent['$id'] 即可访问$id的CPU负载
+cpuLoadCurrent = {}
+
+
 
 app = Flask(__name__)
 CORS(app) #跨域
@@ -52,6 +56,8 @@ class RESTNodeInfo(Resource):
         hdd = request.form['hdd']
 
         print(cpu, memory, hdd)
+
+        cpuLoadCurrent[id] = cpu
 
         return {'msg': 'success'}
 
