@@ -1,21 +1,79 @@
 import sys
-
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource,abort,reqparse
 import flask_restful as restful
-import os
-from REST import RESTExample
 import datetime
 import docker
-app = Flask(__name__)
+from flask import request,Flask,url_for,send_from_directory
+from werkzeug.security import safe_join as safe_join
+from datetime import date,timedelta,datetime
+import requests
+import re
+import json
+import redis
+import hashlib
+import os
 
+
+# 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
+from Server.GBRT.GBRT import GBRT
+
+nodeGBRT={}
+
+
+app = Flask(__name__)
 CORS(app) #跨域
-api = restful.Api(app)
+
+
+# get参数解析器
+parser=reqparse.RequestParser()
+parser.add_argument('type',type=str)
+
+# redis内存数据库用作进程通信
+sessionPool=redis.Redis(host='localhost',port=6379)#内存会话记录
+
+
+# ===========================================
+#测试
+class RESTExample(Resource):
+    def get(self):
+        return {'msg': 'ok example'}
+
+    def post(self):
+        abort(400) # 取消
+
+
+# 上传节点信息
+class RESTNodeInfo(Resource):
+    def get(self):
+        pass
+    
+    # 通过post上传节点信息，python中使用 request.post即可上传
+    def post(self):
+        id = request.form['id']
+        time=request.form['time']
+        cpu = request.form['cpu']
+        memory = request.form['memory']
+        hdd = request.form['hdd']
+        print(cpu, memory, hdd)
+        ##利用新上传的cpu负载训练模型
+        if id in nodeGBRT:
+            nodeGBRT[id].update(time,cpu)
+        else:
+            nodeGBRT[id]=GBRT(n_trees=100)
+            nodeGBRT[id].update(time, cpu)
+        ##结束
+
+        return {'msg': 'success'}
 
 # ==================================================
+api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
 api.add_resource(RESTExample, '/example')
+
+# 节点负载信息接口
+api.add_resource(RESTNodeInfo, '/nodeinfo')
 # ===================================================
 
 if __name__ == '__main__':
@@ -24,6 +82,6 @@ if __name__ == '__main__':
         sys.exit("swarm init failed")
     swarm_attr=client.swarm.attrs
     worker_token=swarm_attr['JoinTokens']['Worker']
-
+    print("Worker_Token： "+worker_token)
     app.run(host="0.0.0.0", port=5000, debug=True)
 

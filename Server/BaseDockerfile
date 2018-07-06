@@ -1,6 +1,8 @@
 FROM ubuntu:16.04
 ADD cal.py /home
+ADD DATA /home
+ADD DataProcesser.py /home
 RUN apt-get update
-RUN apt-get install python3
+RUN apt-get install pip3
 RUN pip install numpy
-ENTRYPOINT["python","cal.py"]
+ENTRYPOINT["python","/home/calpy"]
