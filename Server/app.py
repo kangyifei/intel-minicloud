@@ -1,3 +1,4 @@
+from gevent import monkey; monkey.patch_all()
 import sys
 from flask import Flask
 from flask_cors import CORS
@@ -14,6 +15,7 @@ import json
 import redis
 import hashlib
 import os
+import gevent
 
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
@@ -28,6 +30,8 @@ computingTasks = ComputingShareTasks()
 app = Flask(__name__)
 CORS(app) #跨域
 
+# 任务
+threads = []
 
 # get参数解析器
 parser=reqparse.RequestParser()
@@ -170,22 +174,37 @@ api.add_resource(RESTDockerDeploy, '/dockerdeploy')
 # 算力共享平台
 api.add_resource(RESTComputingTasks, '/computingtasks')
 # ===================================================
-
-if __name__ == '__main__':
-
+# 初始化工作目录
+def initWorkSpace():
     # 如果存储文件的文件夹不存在，则创建
     for folder in ALLOWED_FOLDERS:
         if not os.path.exists(folder):
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
+
+# 初始化docker
+def initDocker():
+    client = docker.from_env()
+    if not client.swarm.init(advertise_addr="192.168.1.145:2377"):
+        sys.exit("swarm init failed")
+    swarm_attr=client.swarm.attrs
+    worker_token=swarm_attr['JoinTokens']['Worker']
+    print("Worker_Token： "+worker_token)
+
+    return client
+
+if __name__ == '__main__':
+
+    # 初始化工作目录
+    initWorkSpace()
+
+    # 初始化docker
+    # client = initDocker()
     
-    # client = docker.from_env()
-    # if not client.swarm.init(advertise_addr="192.168.1.145:2377"):
-    #     sys.exit("swarm init failed")
-    # swarm_attr=client.swarm.attrs
-    # worker_token=swarm_attr['JoinTokens']['Worker']
-    # print("Worker_Token： "+worker_token)
+    # 添加协程
+    threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True)) # flask web服务
 
-
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # 等待所有协程结束
+    gevent.joinall(threads)
+   
 
