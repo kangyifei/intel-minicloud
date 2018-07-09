@@ -20,6 +20,7 @@ ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER] # 
 BASE_URL = 'http://127.0.0.1:5000'
 MANAGER_ADDR="192.168.1.145:2377"
 
+JOIN_TOKEN=""
 
 tasks = [] #任务列表
 
@@ -87,7 +88,7 @@ def initWorkSpace():
 def initDocker():
     # 初始化docker
     client = docker.from_env()
-    if not client.swarm.join(remote_addrs=[MANAGER_ADDR]):
+    if not client.swarm.join(remote_addrs=[MANAGER_ADDR],join_token=JOIN_TOKEN):
         sys.exit("swarm init failed")
 
     return client

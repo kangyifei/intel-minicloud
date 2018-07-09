@@ -1,4 +1,5 @@
 from gevent import monkey; monkey.patch_all()
+import shutil
 import sys
 from flask import Flask
 from flask_cors import CORS
@@ -19,13 +20,15 @@ import gevent
 
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
+from DirectlyDockerBuild import DirectlyDockerBuilder
 from GBRT.GBRT import GBRT
-nodeGBRT={}
+nodesGBRT={}
 
 # 算力共享任务
 from ComputingShare import ComputingShareTask, ComputingShareTasks
 computingTasks = ComputingShareTasks()
-
+#获取本地DOCKER客户端
+client = docker.from_env()
 
 app = Flask(__name__)
 CORS(app) #跨域
@@ -71,11 +74,11 @@ class RESTNodeInfo(Resource):
         hdd = request.form['hdd']
         print(cpu, memory, hdd)
         ##利用新上传的cpu负载训练模型
-        if id in nodeGBRT:
-            nodeGBRT[id].update(time,cpu)
+        if id in nodesGBRT:
+            nodesGBRT[id].update(time,cpu)
         else:
-            nodeGBRT[id]=GBRT(n_trees=100)
-            nodeGBRT[id].update(time, cpu)
+            nodesGBRT[id]=GBRT(n_trees=100)
+            nodesGBRT[id].update(time, cpu)
         ##结束
 
         return {'msg': 'success'}, 200
@@ -102,32 +105,10 @@ class RESTUpload(Resource):
 
             return {"msg": "success", 'filename': filename}, 200
         else:
-            return {"msg": "fail, file no exists"}, 400
+            return {"msg": "fail, file not exists"}, 400
     
     def get(self, folder):
         return {'msg': folder}
-
-
-# docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
-class RESTDockerDeploy(Resource):
-    def post(self):
-        try: # 判断参数是否正确
-            nodeIdsStr = request.form['nodeIds']
-            dockerName = request.form['dockerName']
-            nodeIds = json.loads(nodeIdsStr)
-            dockerFullName = DOCKER_FOLDER + '/' + dockerName # 完整docker路径
-        except:
-            return {"msg": "arguments illegal"}, 400
-
-        # 判断文件是否存在
-        if not os.path.exists(dockerFullName):
-            return {'msg': 'file not exists'}, 410
-
-        # nodeIds是目的节点的id，是一个不定长列表，如[1, 2, 6]
-        print("nodeIds", nodeIds)
-        print("docker path", dockerFullName)
-
-        return {"msg": "success"}
 
 # 算力共享平台分发接口，接收参数为程序名和数据包名，其中，程序为单个可执行文件，数据包后缀为tar.gz
 class RESTComputingTasks(Resource):
@@ -159,6 +140,40 @@ class RESTFiles(Resource):
         else:
             return {"msg": "delete success"}, 200
 
+
+# docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
+##TODO:增加了DOCKER分发的tag标签，即镜像的名字，可以是name,自动变成name:lastest;或者是name:version
+##TODO:增加了DOCKER分发的num属性，即要分发多少个容器
+class RESTDockerDeploy(Resource):
+    def post(self):
+
+        try: 
+            dockerName = request.form['dockerName']
+            tag = request.form['tag']
+            num = request.form['num']
+
+            nodeIdsStr = request.form['nodeIds']
+            nodeIds = json.loads(nodeIdsStr)
+
+            dockerFullPath = DOCKER_FOLDER + '/' + dockerName # 完整docker路径
+            newDockerfolder=DOCKER_FOLDER + '/' + dockerName+"_folder"
+            os.mkdir(newDockerfolder)
+
+        except:
+            return {'msg': 'deploy failed'}, 400
+
+
+        shutil.copy(dockerFullPath,DOCKER_FOLDER + '/' + dockerName+"_folder"+"/Dockerfile")
+        image=DirectlyDockerBuilder(newDockerfolder,tag).build()
+        import docker.types
+        client.services.create(image=image,
+                               name=tag,
+                               mode=docker.types.ServiceMode(mode="replicated",replicas=int(num)))
+        print(dockerFullPath)
+
+        return {'msg': 'deploy success'}, 200
+
+
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -182,24 +197,12 @@ def initWorkSpace():
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
 
-# 初始化docker
-def initDocker():
-    client = docker.from_env()
-    if not client.swarm.init(advertise_addr="192.168.1.145:2377"):
-        sys.exit("swarm init failed")
-    swarm_attr=client.swarm.attrs
-    worker_token=swarm_attr['JoinTokens']['Worker']
-    print("Worker_Token： "+worker_token)
-
-    return client
+# ===================================================
 
 if __name__ == '__main__':
 
     # 初始化工作目录
     initWorkSpace()
-
-    # 初始化docker
-    # client = initDocker()
     
     # 添加协程
     threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True)) # flask web服务
@@ -207,4 +210,6 @@ if __name__ == '__main__':
     # 等待所有协程结束
     gevent.joinall(threads)
    
+
+    app.run(host="0.0.0.0", port=5000, debug=True)
 

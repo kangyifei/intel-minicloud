@@ -1,8 +1,9 @@
 FROM ubuntu:16.04
-ADD cal.py /home
-ADD DATA /home
-ADD DataProcesser.py /home
+RUN cd /home
+RUN mkdir sharedComputingTask
+ADD cal.py /home/sharedComputingTask
+ADD DataProcesser.py /home/sharedComputingTask
 RUN apt-get update
-RUN apt-get install pip3
-RUN pip install numpy
-ENTRYPOINT["python","/home/calpy"]
+RUN apt-get install python3 python3-pip
+RUN pip3 install numpy
+ENTRYPOINT["python3","/home/cal.py"]
