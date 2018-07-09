@@ -47,24 +47,28 @@ def infoUploadTask(client):
 def getDocker():
     while(1):
         gevent.sleep(2) # 每2s检查一次
+        logging.debug('check docker...')
 
 # 持续检查服务器是否分发了算力共享任务，如果有，则下载
 def getComputingTask():
     while(1):
         gevent.sleep(2) # 每2s检查一次
+        logging.debug('check computing share...')
 
 # -------------------------------------------------------------------------------------------
-# 文件下载
+# 文件下载, 同步方法
 def download(url, fileFullName, callback = lambda : logging.debug("download success")):
     r = requests.get(url)
 
     if os.path.exists(fileFullName):
+        logging.error('file exists!')
         return False
 
     # 写入文件
     with open(fileFullName, 'wb') as outfile:
         outfile.write(r.content)
     
+    logging.info('download success')
     # 执行回调
     callback()
 

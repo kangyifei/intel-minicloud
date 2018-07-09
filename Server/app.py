@@ -147,6 +147,7 @@ class RESTComputingTasks(Resource):
 
         return {"msg": "success"}, 200
 
+# 文件管理接口，可以上传和删除
 class RESTFiles(Resource):
     def get(self, folder, filename):
         return send_from_directory(FILE_FOLDER + '/' + folder, filename)
