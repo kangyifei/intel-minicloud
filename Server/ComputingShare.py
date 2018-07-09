@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> 5a88a7121b0a175e8772b29bbfa496a741dc8bee
 import os
 import tarfile
 import time
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5a88a7121b0a175e8772b29bbfa496a741dc8bee
 class ComputingShareTask():
     # 内部block类，任务细分块
     class block():
@@ -71,25 +63,14 @@ class ComputingShareTask():
         dataFileList=self.__utarData()
         avaiableNodesList=self.__getAvaiableNodes(600,30)
         return dataFileList,avaiableNodesList
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5a88a7121b0a175e8772b29bbfa496a741dc8bee
 
 
 class ComputingShareTasks():
     def __init__(self):
         self.taskid = 0
         self.tasks = []
-<<<<<<< HEAD
     
     def newTask(self, programName, dataName,nodesGBRT):
         task = ComputingShareTask(self.taskid, programName, dataName,nodesGBRT)
         self.taskid += 1
         self.tasks.append(task)
-=======
-
-    def newTask(self, programName, dataName,nodesGBRT):
-        task = ComputingShareTask(self.taskid, programName, dataName,nodesGBRT)
->>>>>>> 5a88a7121b0a175e8772b29bbfa496a741dc8bee
