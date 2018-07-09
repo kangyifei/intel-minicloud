@@ -7,6 +7,7 @@ import requests
 
 BASE_URL = 'http://127.0.0.1:5000'
 MANAGER_ADDR="192.168.1.145:2377"
+
 if __name__ == '__main__':
     client = docker.from_env()
     if not client.swarm.join(remote_addrs=[MANAGER_ADDR]):

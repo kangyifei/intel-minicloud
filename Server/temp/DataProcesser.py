@@ -1,6 +1,7 @@
 import requests
 
 def input_data():
+    BASE_URL = 'http://127.0.0.1:5000'
     f=open("\HOME\DATA","r")
     return f
 def output_data(res):
