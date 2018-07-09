@@ -42,7 +42,7 @@ PROGRAM_FOLDER = FILE_FOLDER + '/program' # 程序上传目录
 DATA_FOLDER = FILE_FOLDER + '/data' # 数据上传目录
 RESULT_FOLDER = FILE_FOLDER + '/result' # 结果上传目录
 
-ALLOW_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER] # 所有允许上传和文件目录集合
+ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER] # 所有允许上传和文件目录集合
 # ===========================================
 #测试
 class RESTExample(Resource):
@@ -74,7 +74,7 @@ class RESTNodeInfo(Resource):
             nodeGBRT[id].update(time, cpu)
         ##结束
 
-        return {'msg': 'success'}
+        return {'msg': 'success'}, 200
 
 # 上传文件接口, 通过post方式上传
 class RESTUpload(Resource):
@@ -86,7 +86,7 @@ class RESTUpload(Resource):
         destFolder = FILE_FOLDER + '/' + folder
 
         # 如果不在允许的目录内，则返回错误码
-        if destFolder not in ALLOW_FOLDERS:
+        if destFolder not in ALLOWED_FOLDERS:
             return {"msg": "fail, folder name error"}, 400
 
         if myfile: # 文件存在
@@ -106,19 +106,35 @@ class RESTUpload(Resource):
 
 # docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
 class RESTDockerDeploy(Resource):
-    def post(self, dockerName):
-        nodeIdsStr = request.form['nodeIds']
-        nodeIds = json.load(nodeIdsStr)
+    def post(self):
+        try: # 判断参数是否正确
+            nodeIdsStr = request.form['nodeIds']
+            dockerName = request.form['dockerName']
+            nodeIds = json.loads(nodeIdsStr)
+            dockerFullName = DOCKER_FOLDER + '/' + dockerName # 完整docker路径
+        except:
+            return {"msg": "arguments illegal"}, 400
 
-        dockerFullPath = DOCKER_FOLDER + '/' + dockerName # 完整docker路径
+        # 判断文件是否存在
+        if not os.path.exists(dockerFullName):
+            return {'msg': 'file not exists'}, 410
 
-        print(dockerFullPath)
+        # nodeIds是目的节点的id，是一个不定长列表，如[1, 2, 6]
+        print("nodeIds", nodeIds)
+        print("docker path", dockerFullName)
+
+        return {"msg": "success"}
 
 # 算力共享平台分发接口，接收参数为程序名和数据包名，其中，程序为单个可执行文件，数据包后缀为tar.gz
 class RESTComputingTasks(Resource):
     def post(self):
-        programName = request.form['programName']
-        dataName = request.form['dataName']
+        try:
+            programName = request.form['programName']
+            dataName = request.form['dataName']
+            nodeIdsStr = request.form['nodeIds']
+            nodeIds = json.loads(nodeIdsStr)
+        except:
+            return {'msg': 'arguments illegal'}, 400
 
         programFullName = PROGRAM_FOLDER + '/' + programName
         dataFullName = DATA_FOLDER + '/' + dataName
@@ -127,11 +143,18 @@ class RESTComputingTasks(Resource):
 
         return {"msg": "success"}, 200
 
+class RESTFiles(Resource):
+    def get(self, folder, filename):
+        return send_from_directory(FILE_FOLDER + '/' + folder, filename)
 
-# 文件下载接口，输入路径 /files/docker/docs2 即可下载/files/docker下的docs2文件
-@app.route('/files/<folder>/<filename>')
-def uploaded_file(folder, filename):
-    return send_from_directory(FILE_FOLDER + '/' + folder, filename)
+    def delete(self, folder, filename):
+        try:
+            os.remove(FILE_FOLDER + '/' + folder + '/' + filename)
+        except:
+            return {"msg": "file not exists"}, 410
+        else:
+            return {"msg": "delete success"}, 200
+
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -140,8 +163,10 @@ api.add_resource(RESTExample, '/example')
 api.add_resource(RESTNodeInfo, '/nodeinfo')
 # 文件上传接口,比如 /upload/docker则是向docker文件夹上传文件，文件名不能与已有文件重复
 api.add_resource(RESTUpload, '/upload/<string:folder>')
+# 文件管理接口,下载和删除
+api.add_resource(RESTFiles, '/files/<string:folder>/<string:filename>')
 # docker分发接口，比如 /deploy/docker001 ，参数中 nodeIds = [5, 3, 56]，则是向 5, 3, 56分发镜像
-api.add_resource(RESTDockerDeploy, '/dockerdeploy/<string:dockerName>')
+api.add_resource(RESTDockerDeploy, '/dockerdeploy')
 # 算力共享平台
 api.add_resource(RESTComputingTasks, '/computingtasks')
 # ===================================================
@@ -149,7 +174,7 @@ api.add_resource(RESTComputingTasks, '/computingtasks')
 if __name__ == '__main__':
 
     # 如果存储文件的文件夹不存在，则创建
-    for folder in ALLOW_FOLDERS:
+    for folder in ALLOWED_FOLDERS:
         if not os.path.exists(folder):
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
