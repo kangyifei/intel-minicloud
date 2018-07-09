@@ -21,12 +21,12 @@ class GBRT(object):
             self._trained = True
         else:
             print("not first time trained")
-            self.est.set_params(warm_start=True)
+            self.est.set_params(warm_start=True, n_estimators=self.est.get_params()["n_estimators"])
             print(self.est.warm_start)
             self.est.fit(time, data)
 
     def predict(self, time):
-        time=np.array(time).reshape(-1,1)
+        time = np.array(time).reshape(-1, 1)
         return self.est.predict(time)
 
 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     print(time.time())
     model.update([1, 2, 3, 4, 5, 6], [1, 1, 1, 10, 1, 1])
     print(time.time())
-    model.update([7, 8, 9, 10 ], [10, 1, 1, 1])
+    model.update([7, 8, 9, 10], [10, 1, 1, 1])
     print(time.time())
     print(model.predict([15]))
     print(time.time())

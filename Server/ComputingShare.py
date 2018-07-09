@@ -1,11 +1,10 @@
-<<<<<<< HEAD
+
 import os
 import tarfile
 import time
 
 
-=======
->>>>>>> e0bfcffd6789244928ef6fac8f4fc924c029b0cb
+
 class ComputingShareTask():
     # 内部block类，任务细分块
     class block():
@@ -14,7 +13,6 @@ class ComputingShareTask():
             self.dataName = dataName
             self.status = 'stop' # 分为stop还未开始 processing 正在处理 和 finished 已完成 四种状态
 
-<<<<<<< HEAD
     def __init__(self, id, programName, dataName,nodesGBRT): # 任务id,任务块数
         self.id = id
         self.status = 'stop' 
@@ -64,18 +62,6 @@ class ComputingShareTask():
         dataFileList=self.__utarData()
         avaiableNodesList=self.__getAvaiableNodes(600,30)
         return dataFileList,avaiableNodesList
-=======
-    def __init__(self, id, programName, dataName): # 任务id,任务块数
-        self.id = id
-        self.status = 'stop' 
-        self.blocks = [] # 任务划分块
-
-        # 解压缩data
-
-        lenData = 2 # 解压缩后data数目
-
->>>>>>> e0bfcffd6789244928ef6fac8f4fc924c029b0cb
-
 
 
 
@@ -84,13 +70,6 @@ class ComputingShareTasks():
     def __init__(self):
         self.taskid = 0
         self.tasks = []
-    
-<<<<<<< HEAD
+
     def newTask(self, programName, dataName,nodesGBRT):
         task = ComputingShareTask(self.taskid, programName, dataName,nodesGBRT)
-=======
-    def newTask(self, programName, dataName):
-        task = ComputingShareTask(self.taskid, programName, dataName)
->>>>>>> e0bfcffd6789244928ef6fac8f4fc924c029b0cb
-        self.taskid += 1
-        self.tasks.append(task)
