@@ -37,7 +37,7 @@ class ComputingShareTask():
                 avaiableNodesList.append(id)
 
     ##解压缩tar文件方法
-    def __untar(file_name):
+    def __untar(self,file_name):
      tar = tarfile.open(file_name)
      names = tar.getnames()
      if os.path.isdir(file_name + "_files"):
