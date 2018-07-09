@@ -8,9 +8,8 @@ class DirectlyDockerBuilder(object):
     client = docker.from_env()
 
     def __init__(self, dockerfile_folder_path,tag):
-        self.directly_build = True
-        self.dockerfile_folder_path = dockerfile_folder_path
-        self.tag=tag
+        self.__dockerfile_folder_path = dockerfile_folder_path
+        self.__tag=tag
     def build(self):
-            image, log = self.client.images.build(path=self.dockerfile_folder_path,tag=self.tag)
+            image, log = self.client.images.build(path=self.__dockerfile_folder_path,tag=self.__tag)
             return image
