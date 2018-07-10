@@ -1,9 +1,11 @@
+
 import os
 import tarfile
 import time
 
 
-class ComputingShareTask():
+
+class ComputingShareTask(object):
     # 内部block类，任务细分块
     class block():
         def __init__(self, programName, dataName):
@@ -35,7 +37,6 @@ class ComputingShareTask():
                     break
             if avaiable:
                 avaiableNodesList.append(id)
-
     ##解压缩tar文件方法
     def __untar(self,file_name):
      tar = tarfile.open(file_name)
@@ -48,7 +49,6 @@ class ComputingShareTask():
      for name in names:
          tar.extract(name, file_name + "_files/")
      tar.close()
-
     ##解压缩数据包，返回每个数据文件完整路径列表
     def __utarData(self):
         self.__untar(self.dataName)
@@ -57,7 +57,6 @@ class ComputingShareTask():
         for file in files:
             dataFileList.append(self.dataName + "_files/" + file)
         return  dataFileList
-
     ##运行任务
     def run(self):
         dataFileList=self.__utarData()
@@ -65,12 +64,12 @@ class ComputingShareTask():
         return dataFileList,avaiableNodesList
 
 
-class ComputingShareTasks():
+
+
+class ComputingShareTasks(object):
     def __init__(self):
         self.taskid = 0
         self.tasks = []
-    
+
     def newTask(self, programName, dataName,nodesGBRT):
         task = ComputingShareTask(self.taskid, programName, dataName,nodesGBRT)
-        self.taskid += 1
-        self.tasks.append(task)

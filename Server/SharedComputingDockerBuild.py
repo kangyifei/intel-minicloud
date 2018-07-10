@@ -12,8 +12,8 @@ class sharedComputingBuilder(object):
         self.tag = tag
 
     def build(self):
-        shutil.copy("./BaseDockerfile", "./temp/Dockerfile")
-        dockerfile_folder_path = os.getcwd() + "/temp"
-        shutil.copy(self.codefile_path, "./temp/cal.py")
+        shutil.copy("./BaseDockerfile", "./image/Dockerfile")
+        dockerfile_folder_path = os.getcwd() + "/image"
+        shutil.copy(self.codefile_path, "./image/cal.py")
         image, log = self.client.images.build(path=dockerfile_folder_path, tag=self.tag)
         return image

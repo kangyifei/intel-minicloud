@@ -27,7 +27,7 @@ if __name__ == '__main__':
             # 打开文件，读取内容
             with open(fileName, 'r') as infile:
                 lines = infile.readlines()
-            
+
             # 获取两个矩阵
             mat0 = str2mat(lines[0])
             mat1 = str2mat(lines[1])
