@@ -57,28 +57,6 @@ def getComputingTask():
         logging.debug('check computing share...')
 
 # -------------------------------------------------------------------------------------------
-# 文件下载, 同步方法
-def download(url, fileFullName, callback = lambda : logging.debug("download success")):
-    r = requests.get(url)
-
-    if os.path.exists(fileFullName):
-        logging.error('file exists!')
-        return False
-
-    # 写入文件
-    with open(fileFullName, 'wb') as outfile:
-        outfile.write(r.content)
-    
-    logging.info('download success')
-    # 执行回调
-    callback()
-
-# 异步下载任务
-def downloadAsync(url, fileFullName, callback = lambda : logging.debug("download success")):
-    # 创建异步下载任务
-    dTask = gevent.spawn(download, url, fileFullName, callback)
-
-    tasks.append(dTask)
 
 # 初始化工作目录
 def initWorkSpace():
@@ -107,7 +85,7 @@ if __name__ == '__main__':
     initWorkSpace()
 
     # 异步下载范例， 下载成功后执行callback回调
-    downloadAsync(url = 'http://127.0.0.1:5000/files/docker/app.py', fileFullName = './files/docker/app.py', callback= lambda: print('hello'))
+    # downloadAsync(url = 'http://127.0.0.1:5000/files/docker/app.py', fileFullName = './files/docker/app.py', callback= lambda: print('hello'))
     
     # # 初始化docker
     # client = initDocker()
