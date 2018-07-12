@@ -30,16 +30,16 @@ class GBRT(object):
         return self.est.predict(time)
 
 
-if __name__ == '__main__':
-    model = GBRT(n_trees=10)
-    ##origindata:[1,2,3,4, 5, 6, 7, 8,9,10]
-    #############[1,1,1,10,10,10,10,1,1,1]
-    print(time.time())
-    model.update([1, 2, 3, 4, 5, 6], [1, 1, 1, 10, 1, 1])
-    print(time.time())
-    model.update([7, 8, 9, 10], [10, 1, 1, 1])
-    print(time.time())
-    print(model.predict([15]))
-    print(time.time())
-    print(model.predict([7]))
-    print(time.time())
+# if __name__ == '__main__':
+#     model = GBRT(n_trees=10)
+#     ##origindata:[1,2,3,4, 5, 6, 7, 8,9,10]
+#     #############[1,1,1,10,10,10,10,1,1,1]
+#     print()
+#     model.update(25, 25)
+#     print(time.time())
+#     model.update([7, 8, 9, 10], [10, 1, 1, 1])
+#     print(time.time())
+#     print(model.predict([15]))
+#     print(time.time())
+#     print(model.predict([7]))
+#     print(time.time())

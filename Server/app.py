@@ -21,6 +21,9 @@ from GBRT.GBRT import GBRT
 
 nodesGBRT = {}
 
+# 存储所有节点信息的变量
+nodeInfo = {}
+
 # 算力共享任务
 from ComputingShare import ComputingShareTask, ComputingShareTasks
 
@@ -46,8 +49,9 @@ DOCKER_FOLDER = FILE_FOLDER + '/docker'  # docker文件存储目录
 PROGRAM_FOLDER = FILE_FOLDER + '/program'  # 程序上传目录
 DATA_FOLDER = FILE_FOLDER + '/data'  # 数据上传目录
 RESULT_FOLDER = FILE_FOLDER + '/result'  # 结果上传目录
+TEMP_FOLDER = FILE_FOLDER + '/temp'
 
-ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER]  # 所有允许上传和文件目录集合
+ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER, TEMP_FOLDER]  # 所有允许上传和文件目录集合
 
 
 # ===========================================
@@ -63,22 +67,39 @@ class RESTExample(Resource):
 # 上传节点信息
 class RESTNodeInfo(Resource):
     def get(self):
-        pass
+        data = []
+        for k, v in nodeInfo.items():
+            n = {
+                'id': k,
+                'time': v['time'],
+                'cpu': v['cpu'],
+                'memory': v['memory'],
+                'hdd': v['hdd']
+            }
+            data.append(n)
+        return {'msg': 'success', 'data': data}
 
     # 通过post上传节点信息，python中使用 request.post即可上传
     def post(self):
         id = request.form['id']
-        time = request.form['time']
-        cpu = request.form['cpu']
+        time = int(request.form['time'])
+        cpu = int(request.form['cpu'])
         memory = request.form['memory']
         hdd = request.form['hdd']
-        print(cpu, memory, hdd)
+
+        nodeInfo[id] = {
+            'time': time,
+            'cpu': cpu,
+            'memory': memory,
+            'hdd': hdd
+        }
+
         ##利用新上传的cpu负载训练模型
         if id in nodesGBRT:
-            nodesGBRT[id].update(time, cpu)
+            nodesGBRT[id].update([time], [cpu])
         else:
             nodesGBRT[id] = GBRT(n_trees=100)
-            nodesGBRT[id].update(time, cpu)
+            nodesGBRT[id].update([time], [cpu])
         ##结束
 
         return {'msg': 'success'}, 200
@@ -145,31 +166,28 @@ class RESTFiles(Resource):
 
 
 # docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
-##TODO:增加了DOCKER分发的tag标签，即镜像的名字，可以是name,自动变成name:lastest;或者是name:version
-##TODO:增加了DOCKER分发的num属性，即要分发多少个容器
 class RESTDockerDeploy(Resource):
     def post(self):
 
         try:
             dockerName = request.form['dockerName']
-            tag = request.form['tag']
             num = request.form['num']
 
-            nodeIdsStr = request.form['nodeIds']
-            nodeIds = json.loads(nodeIdsStr)
+            print(dockerName, num)
 
             dockerFullPath = DOCKER_FOLDER + '/' + dockerName  # 完整docker路径
-            newDockerfolder = DOCKER_FOLDER + '/' + dockerName + "_folder"
+            newDockerfolder = TEMP_FOLDER + '/' + dockerName + "_folder"
             os.mkdir(newDockerfolder)
 
         except:
             return {'msg': 'deploy failed'}, 400
 
-        shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
-        image = DirectlyDockerBuilder(newDockerfolder, tag).build()
+        
+        shutil.copy(dockerFullPath, TEMP_FOLDER + '/' + dockerName.strip('.') + "_folder" + "/Dockerfile")
+        image = DirectlyDockerBuilder(newDockerfolder, dockerName).build()
         import docker.types
         client.services.create(image=image,
-                               name=tag,
+                               name=dockerName,
                                mode=docker.types.ServiceMode(mode="replicated", replicas=int(num)))
         print(dockerFullPath)
 
@@ -220,19 +238,19 @@ if __name__ == '__main__':
     # 初始化工作目录
     initWorkSpace()
     # 初始化Swarm
-    # client = docker.from_env()
-    # try:
-    #     client.swarm.init(advertise_addr="192.168.1.1")
-    # except:
-    #     sys.exit("Swarm init failed")
 
-    # ##获取worker加入Swarm所需密钥
-    # workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-    # print(workerJoinToken)
+    # try:
+    #     client.swarm.init(advertise_addr="192.168.1.104")
+    #     ##获取worker加入Swarm所需密钥
+    #     workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
+    #     print(workerJoinToken)
+    # except Exception as e:
+    #     sys.exit(e)
+
     # 添加协程
-    threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
+    # threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
 
     # 等待所有协程结束
-    gevent.joinall(threads)
+    # gevent.joinall(threads)
 
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
