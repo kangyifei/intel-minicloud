@@ -13,6 +13,7 @@ import json
 import redis
 import os
 import gevent
+from Utils.Utils import formatSize
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
 from DirectlyDockerBuild import DirectlyDockerBuilder
@@ -174,6 +175,16 @@ class RESTDockerDeploy(Resource):
 
         return {'msg': 'deploy success'}, 200
 
+# 所有dockersinfo
+class RESTDockers(Resource):
+    def get(self):
+        fileNames = os.listdir(DOCKER_FOLDER)
+        fileFullNames = (DOCKER_FOLDER + '/' + fn for fn in fileNames)
+        fileSizes = [formatSize(os.path.getsize(ffn)) for ffn in fileFullNames]
+
+        data = [{'name': ele[0], 'size': ele[1]} for ele in zip(fileNames, fileSizes)]
+
+        return {'msg': 'success', 'data': data}, 200
 
 # ==================================================
 api = restful.Api(app)
@@ -189,7 +200,8 @@ api.add_resource(RESTFiles, '/files/<string:folder>/<string:filename>')
 api.add_resource(RESTDockerDeploy, '/dockerdeploy')
 # 算力共享平台
 api.add_resource(RESTComputingTasks, '/computingtasks')
-
+# docker信息获取
+api.add_resource(RESTDockers, '/dockers')
 
 # ===================================================
 # 初始化工作目录
@@ -208,19 +220,19 @@ if __name__ == '__main__':
     # 初始化工作目录
     initWorkSpace()
     # 初始化Swarm
-    client = docker.from_env()
-    try:
-        client.swarm.init(advertise_addr="192.168.1.1")
-    except:
-        sys.exit("Swarm init failed")
+    # client = docker.from_env()
+    # try:
+    #     client.swarm.init(advertise_addr="192.168.1.1")
+    # except:
+    #     sys.exit("Swarm init failed")
 
-    ##获取worker加入Swarm所需密钥
-    workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-    print(workerJoinToken)
+    # ##获取worker加入Swarm所需密钥
+    # workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
+    # print(workerJoinToken)
     # 添加协程
     threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
 
     # 等待所有协程结束
     gevent.joinall(threads)
 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # app.run(host="0.0.0.0", port=5000, debug=True)
