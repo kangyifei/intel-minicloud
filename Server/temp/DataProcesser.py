@@ -47,7 +47,7 @@ class DataProcesser():
     
     # 输出文件接口
     def output_data(self, fileFullName, taskID):
-        pass
+        pass       
 
     # 自动保存文件
     def saveFile(self, data):
