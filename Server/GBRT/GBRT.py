@@ -26,8 +26,9 @@ class GBRT(object):
             print(self.est.warm_start)
             self.est.fit(time, data)
 
-    def predict(self, time):
+    def predict(self, time, time_length):
         time = np.array(time).reshape(-1, 1)
+        time = time % time_length
         return self.est.predict(time)
 
 
