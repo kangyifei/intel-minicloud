@@ -8,9 +8,10 @@ import time
 class ComputingShareTask(object):
     # 内部block类，任务细分块
     class Block():
-        def __init__(self, programName, dataName):
+        def __init__(self, programName, dataName, blk_id):
             self.programName = programName
             self.dataName = dataName
+            self.blk_id = blk_id # 任务块id
             self.status = 'stop' # 分为stop还未开始 processing 正在处理 和 finished 已完成 四种状态
 
     def __init__(self, id, programName, dataName,nodesGBRT): # 任务id,任务块数
@@ -69,9 +70,11 @@ class ComputingShareTask(object):
     def run(self):
         self.dataFileList = self.__untar(self.dataName)
 
+        blk_id = 0
         # 添加任务到 blocks列表里
         for file in self.dataFileList:
-            self.blocks.append(self.Block(self.programName, file))
+            self.blocks.append(self.Block(self.programName, file, blk_id))
+            blk_id += 1 # blk_id自增，与block在self.blocks[]中的位置索引相同
 
         self.avaiableNodesList = self.__getAvaiableNodes(600, 30)
 
