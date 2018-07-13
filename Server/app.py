@@ -17,7 +17,7 @@ import os
 from Utils.Utils import formatSize
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
-from DirectlyDockerBuild import DirectlyDockerBuilder
+from ImageBuild import ImageBuilder
 from GBRT.GBRT import GBRT
 
 nodesGBRT = {}
@@ -26,9 +26,9 @@ nodesGBRT = {}
 nodeInfo = {}
 
 # 算力共享任务
-from ComputingShare import ComputingShareTask, ComputingShareTasks
-computingShareTask = None
+from ComputingShare import ComputingShareTask
 
+computingShareTask = None
 
 # 获取本地DOCKER客户端
 client = docker.from_env()
@@ -95,7 +95,6 @@ class RESTNodeInfo(Resource):
             'memory': memory,
             'hdd': hdd
         }
-
         ##利用新上传的cpu负载训练模型
         if id in nodesGBRT:
             nodesGBRT[id].update([time], [cpu])
@@ -147,6 +146,18 @@ class RESTComputingTasks(Resource):
         programFullName = PROGRAM_FOLDER + '/' + programName
         dataFullName = DATA_FOLDER + '/' + dataName
 
+        newComputingShareDockerFolder = TEMP_FOLDER + '/' + programName + '_folder'
+        if os.path.exists(newComputingShareDockerFolder):
+            shutil.rmtree(newComputingShareDockerFolder)
+        os.mkdir(newComputingShareDockerFolder)
+
+        shutil.copy(programFullName, newComputingShareDockerFolder + '/cal.py')
+        IMAGE_FOLDER = "./image"
+        shutil.copy(IMAGE_FOLDER + "/DataProcess.py", newComputingShareDockerFolder + '/DataProcess.py')
+        shutil.copy(IMAGE_FOLDER + "/BaseDockerfile", newComputingShareDockerFolder + '/Dockerfile')
+        image = ImageBuilder(dockerfile_folder_path=newComputingShareDockerFolder,
+                             tag=programName).build()
+
         global computingShareTask
         if computingShareTask != None:
             return {'msg': 'there is a task running'}, 400
@@ -154,12 +165,18 @@ class RESTComputingTasks(Resource):
         try:
             computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
             computingShareTask.run()
+
+            computingShareService = ServiceBuilder(image=image,
+                                                   name=programName,
+                                                   nodelist=computingShareTask.avaiableNodesList
+                                                   )
             # computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
         except Exception as e:
             print(e)
             return {'msg': 'failed'}, 400
 
         return {"msg": "success"}, 200
+
 
 # 文件管理接口，可以上传和删除
 class RESTFiles(Resource):
@@ -198,14 +215,15 @@ class RESTDockerDeploy(Resource):
             return {'msg': 'deploy failed'}, 400
 
         shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
-        image = DirectlyDockerBuilder(newDockerfolder, dockerName).build()
-        service=ServiceBuilder(image=image,
-                               name=dockerName,
-                               replicas=num).run()
+        image = ImageBuilder(newDockerfolder, dockerName).build()
+        service = ServiceBuilder(image=image,
+                                 name=dockerName,
+                                 replicas=num).run()
 
         print(dockerFullPath)
 
         return {'msg': 'deploy success'}, 200
+
 
 # 所有dockersinfo
 class RESTDockers(Resource):
@@ -218,6 +236,7 @@ class RESTDockers(Resource):
 
         return {'msg': 'success', 'data': data}, 200
 
+
 # 获取token
 class RESTToken(Resource):
     def get(self):
@@ -228,6 +247,8 @@ class RESTToken(Resource):
             return {'msg': 'token error'}, 500
         else:
             return {'msg': 'success', 'token': token}, 200
+
+
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -247,6 +268,7 @@ api.add_resource(RESTDockers, '/dockers')
 # docker token获取
 api.add_resource(RESTToken, '/token')
 
+
 # ===================================================
 # 初始化工作目录
 def initWorkSpace():
@@ -255,6 +277,7 @@ def initWorkSpace():
         if not os.path.exists(folder):
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
+
 
 # 初始化Docker
 def initDocker():
@@ -266,6 +289,8 @@ def initDocker():
         # print(workerJoinToken)
     except Exception as e:
         print(e)
+
+
 # ===================================================
 
 if __name__ == '__main__':

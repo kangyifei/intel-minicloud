@@ -25,6 +25,7 @@ class ComputingShareTask(object):
 
     ##获取可用节点列表方法，传入任务的运行时间和CPU最高占用率
     def __getAvaiableNodes(self,runningTime,cpuPeakUsage):
+        runningTime=runningTime+60
         nodesGBRT=self.nodesGBRT
         avaiableNodesList=[]
         for id,GBRT in nodesGBRT.items():
@@ -78,13 +79,4 @@ class ComputingShareTask(object):
         self.avaiableNodesList = self.__getAvaiableNodes(600, 30)
 
 
-
-
-class ComputingShareTasks(object):
-    def __init__(self):
-        self.taskid = 0
-        self.tasks = []
-
-    def newTask(self, programName, dataName,nodesGBRT):
-        task = ComputingShareTask(self.taskid, programName, dataName,nodesGBRT)
 

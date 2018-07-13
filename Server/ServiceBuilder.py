@@ -20,8 +20,8 @@ class ServiceBuilder(object):
             for nodeid in self.__nodelist:
                 node = client.nodes.get(node_id=nodeid)
                 node.update({'Labels': {self.__name: self.__name}})
-                client.services.create(image=self.__image,
-                                       name=self.__name,
-                                       constrains=["node.lables." + self.__name + "==" + self.__name],
-                                       mode=docker.types.ServiceMode
-                                       (mode="global"))
+            client.services.create(image=self.__image,
+                                   name=self.__name,
+                                   constrains=["node.lables." + self.__name + "==" + self.__name],
+                                   mode=docker.types.ServiceMode
+                                   (mode="global"))
