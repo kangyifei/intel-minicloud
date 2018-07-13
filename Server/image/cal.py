@@ -33,7 +33,8 @@ if __name__ == '__main__':
             mat1 = str2mat(lines[1])
 
             # 相乘
-            res = np.multiply(mat0, mat1)
+            res = str(np.multiply(mat0, mat1).tostring())
+            
 
             # 保存，文件名由系统分配
             fileFullName = dp.saveFile(res)
@@ -41,4 +42,4 @@ if __name__ == '__main__':
             # 输出该文件
             dp.output_data(fileFullName, blk_id)
         else:
-            time.sleep(2) # 每两秒钟检查一次
+            break

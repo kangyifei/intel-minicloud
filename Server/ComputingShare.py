@@ -45,17 +45,21 @@ class ComputingShareTask(object):
             timelist=range(timenow,timeend,5)
             avaiable=True
             for timedot in timelist:
-                cpuUsage=GBRT.predict(timedot)
+                cpuUsage=GBRT.predict(timedot, 600)[0]
                 if not 100-cpuUsage>cpuPeakUsage:
                     avaiable=False
                     break
             if avaiable:
                 avaiableNodesList.append(id)
 
+        return avaiableNodesList
+
 
     ##解压缩tar文件方法
     def __untar(self,file_name):
         tar = tarfile.open(file_name)
+
+
         names = tar.getnames()
         if os.path.isdir(file_name + "_files"):
             pass
@@ -63,29 +67,41 @@ class ComputingShareTask(object):
             os.mkdir(file_name + "_files")
             #因为解压后是很多文件，预先建立同名目录
 
-        for name in names:
-            tar.extract(name, file_name + "_files/")
+        tar.extractall(file_name + "_files")
+
+        # for name in names:
+        #     tar.extract(name, file_name + "_files/")
 
         tar.close()
 
     ##解压缩数据包，返回每个数据文件完整路径列表
     def __utarData(self):
+        print(4)
         self.__untar(self.dataName)
-        path, folders, files = os.walk(self.dataName + "_files")
-        dataFileList = []
-        for file in files:
-            dataFileList.append(self.dataName + "_files/" + file)
+        print(6)
+
+        names = os.listdir(self.dataName + "_files")
+        dataFileList = [self.dataName + "_files/" + file for file in names]
+
+        # # path, folders, files = os.path.walk(self.dataName + "_files")
+        # print(5)
+        # dataFileList = []
+        # for file in files:
+        #     dataFileList.append(self.dataName + "_files/" + file)
         return  dataFileList
 
     # 启动
     def run(self):
-        self.dataFileList = self.__untar(self.dataName)
+        print(1)
+        self.dataFileList = self.__utarData()
 
+        print(2)
         blk_id = 0
         # 添加任务到 blocks列表里
         for file in self.dataFileList:
             self.blocks.append(self.Block(self.programName, file, blk_id))
             blk_id += 1 # blk_id自增，与block在self.blocks[]中的位置索引相同
+        print(3)
 
         self.avaiableNodesList = self.__getAvaiableNodes(600, 30)
 

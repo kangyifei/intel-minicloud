@@ -41,6 +41,7 @@ threads = []
 parser = reqparse.RequestParser()
 parser.add_argument('type', type=str)
 parser.add_argument('status', type=str)
+parser.add_argument('resultName', type=str)
 
 # redis内存数据库用作进程通信
 sessionPool = redis.Redis(host='localhost', port=6379)  # 内存会话记录
@@ -148,6 +149,8 @@ class RESTComputingTask(Resource):
 
         args = parser.parse_args()
 
+        print(args)
+
         if 'status' in args and args['status'] == 'finished' and 'resultName' in args:
             blks[blk_id].status = 'finished'
             blks[blk_id].resultName = args['resultName']
@@ -177,19 +180,19 @@ class RESTComputingTasks(Resource):
         else:  # 否则取单个任务
             # 通过下标访问任务块，寻找第一个没有被分配的任务
             for i in range(len(blks)):
+                print(i)
                 if (blks[i].status == 'stop'):
                     blks[i].status = 'running'
-                    break
-            if i == 0 or i == len(blks):
-                return {'msg': 'failed, no tasks remaining'}, 400
-            data = {
-                'blk_id': i,  # 下标即为id
-                'programName': blks[i].programName,
-                'dataName': blks[i].dataName
-            }
-            # 返回任务
+                    data = {
+                        'blk_id': i,  # 下标即为id
+                        'programName': blks[i].programName,
+                        'dataName': blks[i].dataName
+                    }
+                    # 返回任务
 
-            return {'msg': 'success', 'data': data}, 200
+                    return {'msg': 'success', 'data': data}, 200
+
+            return {'msg': 'failed'}, 400
 
     # 分发任务
     def post(self):
@@ -215,18 +218,24 @@ class RESTComputingTasks(Resource):
 
         shutil.copy(programFullName, newComputingShareDockerFolder + '/cal.py')
         IMAGE_FOLDER = "./image"
-        shutil.copy(IMAGE_FOLDER + "/DataProcess.py", newComputingShareDockerFolder + '/DataProcess.py')
+        shutil.copy(IMAGE_FOLDER + "/DataProcesser.py", newComputingShareDockerFolder + '/DataProcesser.py')
         shutil.copy(IMAGE_FOLDER + "/BaseDockerfile", newComputingShareDockerFolder + '/Dockerfile')
         image = ImageBuilder(dockerfile_folder_path=newComputingShareDockerFolder,
                              tag=programName).build()
 
         try:
             computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
+            print("hello")
             computingShareTask.run()
 
+
+            # computingShareService = ServiceBuilder(image=image,
+            #                                        name=programName,
+            #                                        nodelist=computingShareTask.avaiableNodesList
+            #                                        )
             computingShareService = ServiceBuilder(image=image,
                                                    name=programName,
-                                                   nodelist=computingShareTask.avaiableNodesList
+                                                   nodelist=['e8496']
                                                    )
         except Exception as e:
             print(e)
@@ -325,6 +334,10 @@ class RESTToken(Resource):
 class RESTPredict(Resource):
     def get(self, nodeid):
         # 预测时间序列
+
+        if nodeid not in nodesGBRT:
+            return {'msg': 'failed, no such node'}, 400
+
         model=nodesGBRT[nodeid]
         data=[]
         for timenode in range(int(time()),int(time())+600,30):
@@ -333,6 +346,7 @@ class RESTPredict(Resource):
             data.append(data[-1])
         # data = [25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56]
 
+        # print(data)
         return {'msg': 'success', 'data': data}, 200
 
 

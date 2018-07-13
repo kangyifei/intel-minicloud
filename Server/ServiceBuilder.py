@@ -21,7 +21,14 @@ class ServiceBuilder(object):
         else:
             for nodeid in self.__nodelist:
                 node = client.nodes.get(node_id=nodeid)
-                node.update({'Labels': {self.__name: self.__name}})
+                # node.update({'Labels': {self.__name: self.__name}})
+
+                node.update({'Availability': 'active',
+                    'Name':node.attrs['Description']['Hostname'],
+                    'Role': node.attrs['Spec']['Role'],
+                    'Labels': {self.__name: self.__name}
+                })
+
             client.services.create(image=self.__image,
                                    name=self.__name,
                                    constrains=["node.lables." + self.__name + "==" + self.__name],

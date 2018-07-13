@@ -3,7 +3,7 @@ import os
 import logging
 import json
 
-BASE_URL = 'http://127.0.0.1:5000'
+BASE_URL = 'http://192.168.2.182:5000'
 
 WORK_DIR = './temp'
 
@@ -25,46 +25,53 @@ class DataProcesser():
         # 从服务器获取数据文件名称
         try:
             r = requests.get(getTaskDataUrl).text
+
             res = json.loads(r)
 
-            dataName = res['dataName']
-            blk_id = res['blk_id']
+            dataName = res['data']['dataName'].strip('./files/')
+            blk_id = res['data']['blk_id']
+
+            print(dataName)
             # 下载该文件
-            fileUrl = BASE_URL + '/' + dataName
-            localFileName = WORK_DIR + '/' + dataName
+            fileUrl = BASE_URL + '/files/' + dataName
+            localFileName = WORK_DIR + '/' + dataName.split('/')[-1]
 
             if os.path.exists(localFileName):
                 os.remove(localFileName)
 
             self.download(fileUrl, localFileName)
-        except:
-            return None
+        except Exception as e:
+
+            print(e)
+            return None,None
 
         if os.path.exists(localFileName):
             return localFileName, blk_id
         else:
-            return None
+            return None,None
     
     # 输出文件接口
     def output_data(self, fileFullName, blk_id):
-        resultName = 'result/' + str(blk_id) + '.txt'
-        url = BASE_URL + '/' + resultName 
+        resultName = fileFullName.split('/')[-1]
+        uploadUrl = BASE_URL + '/files/result/' + resultName 
 
-        self.upload(url, fileFullName)
+        self.upload(uploadUrl, fileFullName)
 
-        r = requests.put(url, {'status': 'finished', 'resultName': resultName})
+        resUrl = BASE_URL + '/computingtask/' + str(blk_id)
+        r = requests.put(resUrl, {'status': 'finished', 'resultName': resultName})
 
         
 
 
     # 自动保存文件
     def saveFile(self, data):
+        print(data)
         for i in range(1000):
             # 生成全名
             fileFullName = WORK_DIR + '/' + FILE_NAME_BASE + '_' + str(i)
             # 如果该文件不存在，则创建结果文件，并写入
             if not os.path.exists(fileFullName):
-                with open(fileFullName) as res:
+                with open(fileFullName, 'w') as res:
                     res.write(data)
                 return fileFullName # 返回该名字
 

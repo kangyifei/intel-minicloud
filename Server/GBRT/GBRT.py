@@ -38,7 +38,7 @@ class GBRT(object):
     def predict(self, time, time_length):
         time = np.array(time).reshape(-1, 1)
         time = time % time_length
-        return self.est.predict(time)
+        return self.est.predict(time).tolist()
 
 
 if __name__ == '__main__':
