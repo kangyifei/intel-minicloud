@@ -329,7 +329,7 @@ class RESTToken(Resource):
 
 
 class RESTPredict(Resource):
-    def get(self):
+    def get(self, nodeid):
 
         # 预测时间序列
         data = [25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56]
@@ -356,7 +356,7 @@ api.add_resource(RESTDockers, '/dockers')
 # docker token获取
 api.add_resource(RESTToken, '/token')
 # 预测序列
-api.add_resource(RESTPredict, '/predict')
+api.add_resource(RESTPredict, '/predict/<string:nodeid>')
 
 # ===================================================
 # 初始化工作目录
