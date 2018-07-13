@@ -1,6 +1,6 @@
-from gevent import monkey
+# from gevent import monkey
 
-monkey.patch_all()
+# monkey.patch_all()
 import shutil
 import sys
 from flask import Flask
@@ -12,7 +12,7 @@ from flask import request, Flask, url_for, send_from_directory
 import json
 import redis
 import os
-import gevent
+# import gevent
 from Utils.Utils import formatSize
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
@@ -218,6 +218,16 @@ class RESTDockers(Resource):
 
         return {'msg': 'success', 'data': data}, 200
 
+# 获取token
+class RESTToken(Resource):
+    def get(self):
+        try:
+            token = client.swarm.attrs['JoinTokens']['Worker']
+        except:
+            print("token error")
+            return {'msg': 'token error'}, 500
+        else:
+            return {'msg': 'success', 'token': token}, 200
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -234,6 +244,8 @@ api.add_resource(RESTDockerDeploy, '/dockerdeploy')
 api.add_resource(RESTComputingTasks, '/computingtasks')
 # docker信息获取
 api.add_resource(RESTDockers, '/dockers')
+# docker token获取
+api.add_resource(RESTToken, '/token')
 
 # ===================================================
 # 初始化工作目录
@@ -244,7 +256,16 @@ def initWorkSpace():
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
 
-
+# 初始化Docker
+def initDocker():
+    global client
+    try:
+        client.swarm.init(advertise_addr="192.168.1.104")
+        ##获取worker加入Swarm所需密钥
+        workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
+        # print(workerJoinToken)
+    except Exception as e:
+        print(e)
 # ===================================================
 
 if __name__ == '__main__':
@@ -252,15 +273,7 @@ if __name__ == '__main__':
     # 初始化工作目录
     initWorkSpace()
     # 初始化Swarm
-
-    # try:
-    #     client.swarm.init(advertise_addr="192.168.1.104")
-    #     ##获取worker加入Swarm所需密钥
-    #     workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-    #     print(workerJoinToken)
-    # except Exception as e:
-    #     sys.exit(e)
-
+    initDocker()
     # 添加协程
     # threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
 
