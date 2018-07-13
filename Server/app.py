@@ -38,6 +38,7 @@ threads = []
 # get参数解析器
 parser = reqparse.RequestParser()
 parser.add_argument('type', type=str)
+parser.add_argument('status', type=str)
 
 # redis内存数据库用作进程通信
 sessionPool = redis.Redis(host='localhost', port=6379)  # 内存会话记录
@@ -129,10 +130,79 @@ class RESTUpload(Resource):
     def get(self, folder):
         return {'msg': folder}
 
+# 单个任务接口
+class RESTComputingTask(Resource):
+    def get(self, blk_id):
+        pass
+    
+    def put(self, blk_id):
+        
+        if computingShareTask == None:
+            return {'msg': 'no computing task'}, 400
+
+        blks = computingShareTask.blocks
+
+        args = parser.parse_args()
+
+        if 'status' in args and args['status'] == 'finished' and 'resultName' in args:
+            blks[blk_id].status = 'finished'
+            blks[blk_id].resultName = args['resultName']
+
+            return {'msg': 'modify ok'}, 200
+        else:
+            return {'msg': 'args error'}, 400
+
+    
+
+
+       
 
 # 算力共享平台分发接口，接收参数为程序名和数据包名，其中，程序为单个可执行文件，数据包后缀为tar.gz
 class RESTComputingTasks(Resource):
+    # 获取任务
+    def get(self):
+
+        # 如果没有任务
+        if computingShareTask == None:
+            return {'msg': 'no computing task'}, 400
+
+        args = parser.parse_args()
+
+        if 'type' in args and args['type'] == 'all': # 如果是访问所有
+            blks = computingShareTask.blocks
+            data = [ele.toJson() for ele in blks]
+
+            return {'msg': 'success', 'data': data}, 200
+        
+        else: # 否则取单个任务
+            # 通过下标访问任务块，寻找第一个没有被分配的任务
+            for i in range(len(blks)):
+                if(blks[i].status == 'stop'):
+                    blks[i].status = 'running'
+                    break
+
+            if i == 0 or i == len(blks):
+                return {'msg': 'failed, no tasks remaining'}, 400
+            
+            data = {
+                'blk_id': i, # 下标即为id
+                'programName': blks[i].programName,
+                'dataName': blks[i].dataName
+            }
+            # 返回任务
+
+            return {'msg': 'success', 'data': data}, 200
+
+        
+    # 分发任务
     def post(self):
+
+        # 检查是否已经有任务在运行，如果有，则返回
+        global computingShareTask
+        if computingShareTask != None:
+            return {'msg': 'there is a task running'}, 400
+
+
         try:
             programName = request.form['programName']
             dataName = request.form['dataName']
@@ -154,10 +224,6 @@ class RESTComputingTasks(Resource):
         image = ImageBuilder(dockerfile_folder_path=newComputingShareDockerFolder,
                              tag=programName).build()
 
-        global computingShareTask
-        if computingShareTask != None:
-            return {'msg': 'there is a task running'}, 400
-
         try:
             computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
             computingShareTask.run()
@@ -176,16 +242,31 @@ class RESTComputingTasks(Resource):
 
 # 文件管理接口，可以上传和删除
 class RESTFiles(Resource):
-    def get(self, folder, filename):
-        return send_from_directory(FILE_FOLDER + '/' + folder, filename)
+    # 获取文件
+    def get(self, filename):
+        return send_from_directory(FILE_FOLDER, filename)
 
-    def delete(self, folder, filename):
+    # 删除文件
+    def delete(self, filename):
         try:
-            os.remove(FILE_FOLDER + '/' + folder + '/' + filename)
+            os.remove(FILE_FOLDER + '/' + filename)
         except:
             return {"msg": "file not exists"}, 410
         else:
             return {"msg": "delete success"}, 200
+    
+    # 上传文件
+    def post(self, filename):
+        # 从请求体中获得文件
+        myfile = request.files['file']
+
+        if myfile:  # 文件存在
+
+            myfile.save(FILE_FOLDER + '/' + filename)  # 保存
+
+            return {"msg": "success", 'filename': filename}, 200
+        else:
+            return {"msg": "fail, file not exists"}, 400
 
 
 # docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
@@ -254,11 +335,13 @@ api.add_resource(RESTNodeInfo, '/nodeinfo')
 # 文件上传接口,比如 /upload/docker则是向docker文件夹上传文件，文件名不能与已有文件重复
 api.add_resource(RESTUpload, '/upload/<string:folder>')
 # 文件管理接口,下载和删除
-api.add_resource(RESTFiles, '/files/<string:folder>/<string:filename>')
+api.add_resource(RESTFiles, '/files/<path:filename>')
 # docker分发接口，比如 /deploy/docker001 ，参数中 nodeIds = [5, 3, 56]，则是向 5, 3, 56分发镜像
 api.add_resource(RESTDockerDeploy, '/dockerdeploy')
-# 算力共享平台
+# 算力共享平台，集合管理接口
 api.add_resource(RESTComputingTasks, '/computingtasks')
+# 算力共享平台，单个任务管理接口
+api.add_resource(RESTComputingTask, '/computingtask/<int:blk_id>')
 # docker信息获取
 api.add_resource(RESTDockers, '/dockers')
 # docker token获取

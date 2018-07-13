@@ -21,17 +21,17 @@ class DataProcesser():
     def input_data(self):
         ##TODO:添加get要处理的数据文件路径的服务器端响应
         # 拼接获取任务的url
-        getTaskDataUrl = BASE_URL + '/'
+        getTaskDataUrl = BASE_URL + '/computingtasks'
         # 从服务器获取数据文件名称
         try:
             r = requests.get(getTaskDataUrl).text
             res = json.loads(r)
 
-            taskDataFileName = res['fileName']
-            taskID = res['taskID']
+            dataName = res['dataName']
+            blk_id = res['blk_id']
             # 下载该文件
-            fileUrl = BASE_URL + '/files/data/' + taskDataFileName
-            localFileName = WORK_DIR + '/' + taskDataFileName
+            fileUrl = BASE_URL + '/' + dataName
+            localFileName = WORK_DIR + '/' + dataName
 
             if os.path.exists(localFileName):
                 os.remove(localFileName)
@@ -41,13 +41,21 @@ class DataProcesser():
             return None
 
         if os.path.exists(localFileName):
-            return localFileName, taskID
+            return localFileName, blk_id
         else:
             return None
     
     # 输出文件接口
-    def output_data(self, fileFullName, taskID):
-        pass       
+    def output_data(self, fileFullName, blk_id):
+        resultName = 'result/' + str(blk_id) + '.txt'
+        url = BASE_URL + '/' + resultName 
+
+        self.upload(url, fileFullName)
+
+        r = requests.put(url, {'status': 'finished', 'resultName': resultName})
+
+        
+
 
     # 自动保存文件
     def saveFile(self, data):
@@ -63,7 +71,7 @@ class DataProcesser():
         return None
 
     # 文件上传，同步方法
-    def upload(self, url, localFileFullName, remoteFileName, callback = lambda : logging.debug("upload success")):
+    def upload(self, url, localFileFullName, remoteFileName = '', callback = lambda : logging.debug("upload success")):
         files = {
             'file': open(localFileFullName, 'rb')
         }

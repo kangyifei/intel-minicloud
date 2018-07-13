@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # 循环获取
     while True:
         # 读取文件名
-        fileName, taskID = dp.input_data()
+        fileName, blk_id = dp.input_data()
 
         # 如果有数据
         if fileName:
@@ -39,6 +39,6 @@ if __name__ == '__main__':
             fileFullName = dp.saveFile(res)
 
             # 输出该文件
-            dp.output_data(fileFullName, taskID)
+            dp.output_data(fileFullName, blk_id)
         else:
             time.sleep(2) # 每两秒钟检查一次

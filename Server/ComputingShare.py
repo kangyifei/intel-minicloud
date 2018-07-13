@@ -13,6 +13,17 @@ class ComputingShareTask(object):
             self.dataName = dataName
             self.blk_id = blk_id # 任务块id
             self.status = 'stop' # 分为stop还未开始 processing 正在处理 和 finished 已完成 四种状态
+            self.resultName = ''
+        
+        # 序列化方法
+        def toJson(self):
+            res = {
+                'blk_id': self.blk_id,
+                'dataName': self.dataName,
+                'programName': self.programName,
+                'status': self.status
+            }
+            return res
 
     def __init__(self, id, programName, dataName,nodesGBRT): # 任务id,任务块数
         self.id = id
