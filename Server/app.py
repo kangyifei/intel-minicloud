@@ -82,7 +82,7 @@ class RESTNodeInfo(Resource):
     def post(self):
         id = request.form['id']
         time = int(request.form['time'])
-        cpu = int(request.form['cpu'])
+        cpu = int(float(request.form['cpu']))
         memory = request.form['memory']
         hdd = request.form['hdd']
 
@@ -94,10 +94,11 @@ class RESTNodeInfo(Resource):
         }
         ##利用新上传的cpu负载训练模型
         if id in nodesGBRT:
-            nodesGBRT[id].update([time], [cpu])
+            # nodesGBRT[id].update([time], [cpu])
+            pass
         else:
             nodesGBRT[id] = GBRT(n_trees=100)
-            nodesGBRT[id].update([time], [cpu])
+            # nodesGBRT[id].update([time], [cpu])
         ##结束
 
         return {'msg': 'success'}, 200
@@ -275,7 +276,7 @@ class RESTDockerDeploy(Resource):
 
         try:
             dockerName = request.form['dockerName']
-            num = request.form['num']
+            num = int(request.form['num'])
 
             print(dockerName, num)
 
@@ -291,7 +292,8 @@ class RESTDockerDeploy(Resource):
             print(e)
             return {'msg': 'deploy failed'}, 400
 
-        shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
+        shutil.copy(DOCKER_FOLDER + '/hello', TEMP_FOLDER + '/' + dockerName + "_folder" + "/hello")
+        shutil.copy(dockerFullPath, TEMP_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
         image = ImageBuilder(newDockerfolder, dockerName).build()
         service = ServiceBuilder(image=image,
                                  name=dockerName,
@@ -326,6 +328,13 @@ class RESTToken(Resource):
             return {'msg': 'success', 'token': token}, 200
 
 
+class RESTPredict(Resource):
+    def get(self):
+
+        # 预测时间序列
+        data = [25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56]
+
+        return {'msg': 'success', 'data': data}, 200
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -346,7 +355,8 @@ api.add_resource(RESTComputingTask, '/computingtask/<int:blk_id>')
 api.add_resource(RESTDockers, '/dockers')
 # docker token获取
 api.add_resource(RESTToken, '/token')
-
+# 预测序列
+api.add_resource(RESTPredict, '/predict')
 
 # ===================================================
 # 初始化工作目录
@@ -362,10 +372,10 @@ def initWorkSpace():
 def initDocker():
     global client
     try:
-        client.swarm.init(advertise_addr="192.168.1.104")
+        client.swarm.init(advertise_addr="192.168.2.182")
         ##获取worker加入Swarm所需密钥
         workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-        # print(workerJoinToken)
+        print(workerJoinToken)
     except Exception as e:
         print(e)
 

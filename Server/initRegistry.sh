@@ -1,0 +1,1 @@
+docker run -d -p 9000:5000 -v /home/liaodong/Project/MiniCloud/intel-minicloud/Server/files/registry:/registry --restart=always --name registry registry
