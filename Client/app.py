@@ -71,13 +71,14 @@ def initDocker():
     # 初始化docker
 
     try:
+        # 从服务器获取Docker 的join_token
         r = requests.get(SERVER_URL + '/token').text
         res = json.loads(r)
-
         token = res['token']
 
         print(token)
 
+        # 加入服务器
         client = docker.from_env()
         if not client.swarm.join(remote_addrs=[MANAGER_ADDR],join_token=token):
             sys.exit("swarm init failed")
@@ -86,6 +87,7 @@ def initDocker():
         sys.exit("swarm init failed")
 
     else:
+        # 将
         return client
 
 # ================================================
@@ -97,14 +99,11 @@ if __name__ == '__main__':
     # 初始化工作目录
     initWorkSpace()
 
-    # 异步下载范例， 下载成功后执行callback回调
-    # downloadAsync(url = 'http://127.0.0.1:5000/files/docker/app.py', fileFullName = './files/docker/app.py', callback= lambda: print('hello'))
-    
     # # 初始化docker
     client = initDocker()
     
     # 创建多任务
-    tasks.append(gevent.spawn(infoUploadTask, client)) # 添加 节点信息上传任务 
+    tasks.append(gevent.spawn(infoUploadTask, client)) # 添加 节点信息上传任务，参数为client
     tasks.append(gevent.spawn(getDocker))
     tasks.append(gevent.spawn(getComputingTask))
     
