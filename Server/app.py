@@ -26,8 +26,9 @@ nodeInfo = {}
 
 # 算力共享任务
 from ComputingShare import ComputingShareTask, ComputingShareTasks
+computingShareTask = None
 
-computingTasks = ComputingShareTasks()
+
 # 获取本地DOCKER客户端
 client = docker.from_env()
 
@@ -139,15 +140,23 @@ class RESTComputingTasks(Resource):
         try:
             programName = request.form['programName']
             dataName = request.form['dataName']
-            nodeIdsStr = request.form['nodeIds']
-            nodeIds = json.loads(nodeIdsStr)
         except:
             return {'msg': 'arguments illegal'}, 400
 
         programFullName = PROGRAM_FOLDER + '/' + programName
         dataFullName = DATA_FOLDER + '/' + dataName
 
-        computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
+        global computingShareTask
+        if computingShareTask != None:
+            return {'msg': 'there is a task running'}, 400
+
+        try:
+            computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
+            computingShareTask.run()
+            # computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
+        except Exception as e:
+            print(e)
+            return {'msg': 'failed'}, 400
 
         return {"msg": "success"}, 200
 
@@ -177,9 +186,14 @@ class RESTDockerDeploy(Resource):
 
             dockerFullPath = DOCKER_FOLDER + '/' + dockerName  # 完整docker路径
             newDockerfolder = TEMP_FOLDER + '/' + dockerName + "_folder"
+
+            if os.path.exists(newDockerfolder):
+                shutil.rmtree(newDockerfolder)
+
             os.mkdir(newDockerfolder)
 
-        except:
+        except Exception as e:
+            print(e)
             return {'msg': 'deploy failed'}, 400
 
         
