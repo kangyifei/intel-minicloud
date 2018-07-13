@@ -1,5 +1,7 @@
 from gevent import monkey
 
+from ServiceBuilder import ServiceBuilder
+
 monkey.patch_all()
 import shutil
 import sys
@@ -145,8 +147,6 @@ class RESTFiles(Resource):
 
 
 # docker分发接口.docker文件名从url中解析得到，分发的目标节点id从post接口中得到
-##TODO:增加了DOCKER分发的tag标签，即镜像的名字，可以是name,自动变成name:lastest;或者是name:version
-##TODO:增加了DOCKER分发的num属性，即要分发多少个容器
 class RESTDockerDeploy(Resource):
     def post(self):
 
@@ -167,10 +167,10 @@ class RESTDockerDeploy(Resource):
 
         shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
         image = DirectlyDockerBuilder(newDockerfolder, tag).build()
-        import docker.types
-        client.services.create(image=image,
+        service=ServiceBuilder(image=image,
                                name=tag,
-                               mode=docker.types.ServiceMode(mode="replicated", replicas=int(num)))
+                               replicas=num).run()
+
         print(dockerFullPath)
 
         return {'msg': 'deploy success'}, 200
@@ -219,16 +219,14 @@ if __name__ == '__main__':
     SWARM_MANAGER_ADDR = "192.168.1.2:2377"
     # 初始化工作目录
     initWorkSpace()
-    # 初始化Swarm
-    # client = docker.from_env()
-    # try:
-    #     client.swarm.init(advertise_addr="192.168.1.1")
-    # except:
-    #     sys.exit("Swarm init failed")
+    try:
+        client.swarm.init(advertise_addr="192.168.1.1")
+    except:
+        sys.exit("Swarm init failed")
 
-    # ##获取worker加入Swarm所需密钥
-    # workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-    # print(workerJoinToken)
+    ##获取worker加入Swarm所需密钥
+    workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
+    print(workerJoinToken)
     # 添加协程
     threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
 
