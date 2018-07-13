@@ -2,8 +2,6 @@
 
 from ServiceBuilder import ServiceBuilder
 
-monkey.patch_all()
-# monkey.patch_all()
 import shutil
 import sys
 from flask import Flask
@@ -200,9 +198,9 @@ class RESTDockerDeploy(Resource):
             return {'msg': 'deploy failed'}, 400
 
         shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
-        image = DirectlyDockerBuilder(newDockerfolder, tag).build()
+        image = DirectlyDockerBuilder(newDockerfolder, dockerName).build()
         service=ServiceBuilder(image=image,
-                               name=tag,
+                               name=dockerName,
                                replicas=num).run()
 
         print(dockerFullPath)
