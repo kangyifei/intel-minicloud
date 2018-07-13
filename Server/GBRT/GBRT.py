@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 class GBRT(object):
 
     def __init__(self, n_trees):
-        self.est = GradientBoostingRegressor(n_estimators=n_trees, learning_rate=0.1, min_samples_leaf=8)
+        self.est = GradientBoostingRegressor(n_estimators=n_trees, learning_rate=0.1)
         # self.est=RandomForestRegressor(n_estimators=n_trees)
         self._trained = False
 
@@ -33,7 +33,7 @@ class GBRT(object):
 
 
 if __name__ == '__main__':
-    model = GBRT(n_trees=1000)
+    model = GBRT(n_trees=30)
     ##origindata:[1,2,3,4, 5, 6, 7, 8,9,10]
     #############[1,1,1,10,10,10,10,1,1,1]
     print(model.est.get_params()["n_estimators"])
@@ -69,6 +69,6 @@ if __name__ == '__main__':
     # print(model.predict([15]))
     # print(time.time())
     print(model.predict([100001, 100002, 100003, 100004, 100005, 100006]))
-    print(model.predict([117001, 117002, 117003, 117004, 117005, 117006]))
+    print(model.predict([120001, 120002, 120003, 120004, 120005, 120006]))
     # print(time.time())
     # print(model.est.score(np.array([1001, 1002, 1003, 1004, 1005, 1006]).reshape(-1,1), [1, 1, 1, 10, 10, 10]))

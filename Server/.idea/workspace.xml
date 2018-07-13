@@ -3,10 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="81e19dcb-69c2-496d-a191-8dfe136c0f4a" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/../Client/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Client/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GBRT/GBRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/GBRT/GBRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -16,15 +13,15 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/Server$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1531475526181" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GBRT" />
+    <SUITE FILE_PATH="coverage/Server$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1531476647187" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GBRT" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="GBRT.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GBRT/GBRT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="893">
-              <caret line="59" column="57" selection-start-line="59" selection-start-column="57" selection-end-line="59" selection-end-column="57" />
+            <state relative-caret-position="-264">
+              <caret line="11" column="84" selection-start-line="11" selection-start-column="84" selection-end-line="11" selection-end-column="84" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -59,8 +56,8 @@
       <file leaf-file-name="app.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
+            <state relative-caret-position="74">
+              <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
             </state>
           </provider>
         </entry>
@@ -77,8 +74,8 @@
       <file leaf-file-name="ComputingShare.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ComputingShare.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="27" column="8" selection-start-line="27" selection-start-column="8" selection-end-line="27" selection-end-column="8" />
+            <state relative-caret-position="37">
+              <caret line="28" column="8" selection-start-line="28" selection-start-column="8" selection-end-line="28" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -289,7 +286,14 @@
       <option name="project" value="LOCAL" />
       <updated>1531470396218</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="test GBRT">
+      <created>1531476523540</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1531476523540</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">
@@ -308,7 +312,7 @@
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49947917" weight="0.32980973" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.08229167" side_tool="true" weight="0.3139535" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49895832" weight="0.13424948" />
+      <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49895832" weight="0.1332611" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.91770834" weight="0.42686892" />
       <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.49947917" weight="0.10942578" />
@@ -344,7 +348,8 @@
     <MESSAGE value="写了部分共享算力节点分发逻辑" />
     <MESSAGE value="create ServiceBuilder" />
     <MESSAGE value="finish computingshared task" />
-    <option name="LAST_COMMIT_MESSAGE" value="finish computingshared task" />
+    <MESSAGE value="test GBRT" />
+    <option name="LAST_COMMIT_MESSAGE" value="test GBRT" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -617,8 +622,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ComputingShare.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="27" column="8" selection-start-line="27" selection-start-column="8" selection-end-line="27" selection-end-column="8" />
+        <state relative-caret-position="37">
+          <caret line="28" column="8" selection-start-line="28" selection-start-column="8" selection-end-line="28" selection-end-column="8" />
         </state>
       </provider>
     </entry>
@@ -634,8 +639,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
+        <state relative-caret-position="74">
+          <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
         </state>
       </provider>
     </entry>
@@ -655,8 +660,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GBRT/GBRT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="893">
-          <caret line="59" column="57" selection-start-line="59" selection-start-column="57" selection-end-line="59" selection-end-column="57" />
+        <state relative-caret-position="-264">
+          <caret line="11" column="84" selection-start-line="11" selection-start-column="84" selection-end-line="11" selection-end-column="84" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>

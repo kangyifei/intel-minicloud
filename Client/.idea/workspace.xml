@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cdaccbda-75ff-4af9-b301-bcf817ca23b9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/GBRT/GBRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/GBRT/GBRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Server/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/app.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -119,7 +116,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="382" y="66" width="1536" height="804" extended-state="7" />
-    <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info active="true" anchor="bottom" id="Event Log" order="8" sideWeight="0.501355" side_tool="true" visible="true" weight="0.33830103" />
