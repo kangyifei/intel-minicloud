@@ -1,11 +1,5 @@
-# from gevent import monkey
-
 from ServiceBuilder import ServiceBuilder
-
-monkey.patch_all()
-# monkey.patch_all()
 import shutil
-import sys
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Resource, abort, reqparse
@@ -15,7 +9,6 @@ from flask import request, Flask, url_for, send_from_directory
 import json
 import redis
 import os
-# import gevent
 from Utils.Utils import formatSize
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
