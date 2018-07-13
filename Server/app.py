@@ -1,8 +1,9 @@
-from gevent import monkey
+# from gevent import monkey
 
 from ServiceBuilder import ServiceBuilder
 
 monkey.patch_all()
+# monkey.patch_all()
 import shutil
 import sys
 from flask import Flask
@@ -14,7 +15,7 @@ from flask import request, Flask, url_for, send_from_directory
 import json
 import redis
 import os
-import gevent
+# import gevent
 from Utils.Utils import formatSize
 
 # 存储当前节点预测模型的全局变量，键值对的形式存储，{id: GBRT}，使用['$id'] 即可访问$id的预测模型
@@ -23,10 +24,14 @@ from GBRT.GBRT import GBRT
 
 nodesGBRT = {}
 
+# 存储所有节点信息的变量
+nodeInfo = {}
+
 # 算力共享任务
 from ComputingShare import ComputingShareTask, ComputingShareTasks
+computingShareTask = None
 
-computingTasks = ComputingShareTasks()
+
 # 获取本地DOCKER客户端
 client = docker.from_env()
 
@@ -48,8 +53,9 @@ DOCKER_FOLDER = FILE_FOLDER + '/docker'  # docker文件存储目录
 PROGRAM_FOLDER = FILE_FOLDER + '/program'  # 程序上传目录
 DATA_FOLDER = FILE_FOLDER + '/data'  # 数据上传目录
 RESULT_FOLDER = FILE_FOLDER + '/result'  # 结果上传目录
+TEMP_FOLDER = FILE_FOLDER + '/temp'
 
-ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER]  # 所有允许上传和文件目录集合
+ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER, TEMP_FOLDER]  # 所有允许上传和文件目录集合
 
 
 # ===========================================
@@ -65,22 +71,39 @@ class RESTExample(Resource):
 # 上传节点信息
 class RESTNodeInfo(Resource):
     def get(self):
-        pass
+        data = []
+        for k, v in nodeInfo.items():
+            n = {
+                'id': k,
+                'time': v['time'],
+                'cpu': v['cpu'],
+                'memory': v['memory'],
+                'hdd': v['hdd']
+            }
+            data.append(n)
+        return {'msg': 'success', 'data': data}
 
     # 通过post上传节点信息，python中使用 request.post即可上传
     def post(self):
         id = request.form['id']
-        time = request.form['time']
-        cpu = request.form['cpu']
+        time = int(request.form['time'])
+        cpu = int(request.form['cpu'])
         memory = request.form['memory']
         hdd = request.form['hdd']
-        print(cpu, memory, hdd)
+
+        nodeInfo[id] = {
+            'time': time,
+            'cpu': cpu,
+            'memory': memory,
+            'hdd': hdd
+        }
+
         ##利用新上传的cpu负载训练模型
         if id in nodesGBRT:
-            nodesGBRT[id].update(time, cpu)
+            nodesGBRT[id].update([time], [cpu])
         else:
             nodesGBRT[id] = GBRT(n_trees=100)
-            nodesGBRT[id].update(time, cpu)
+            nodesGBRT[id].update([time], [cpu])
         ##结束
 
         return {'msg': 'success'}, 200
@@ -120,15 +143,23 @@ class RESTComputingTasks(Resource):
         try:
             programName = request.form['programName']
             dataName = request.form['dataName']
-            nodeIdsStr = request.form['nodeIds']
-            nodeIds = json.loads(nodeIdsStr)
         except:
             return {'msg': 'arguments illegal'}, 400
 
         programFullName = PROGRAM_FOLDER + '/' + programName
         dataFullName = DATA_FOLDER + '/' + dataName
 
-        computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
+        global computingShareTask
+        if computingShareTask != None:
+            return {'msg': 'there is a task running'}, 400
+
+        try:
+            computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
+            computingShareTask.run()
+            # computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
+        except Exception as e:
+            print(e)
+            return {'msg': 'failed'}, 400
 
         return {"msg": "success"}, 200
 
@@ -152,17 +183,20 @@ class RESTDockerDeploy(Resource):
 
         try:
             dockerName = request.form['dockerName']
-            tag = request.form['tag']
             num = request.form['num']
 
-            nodeIdsStr = request.form['nodeIds']
-            nodeIds = json.loads(nodeIdsStr)
+            print(dockerName, num)
 
             dockerFullPath = DOCKER_FOLDER + '/' + dockerName  # 完整docker路径
-            newDockerfolder = DOCKER_FOLDER + '/' + dockerName + "_folder"
+            newDockerfolder = TEMP_FOLDER + '/' + dockerName + "_folder"
+
+            if os.path.exists(newDockerfolder):
+                shutil.rmtree(newDockerfolder)
+
             os.mkdir(newDockerfolder)
 
-        except:
+        except Exception as e:
+            print(e)
             return {'msg': 'deploy failed'}, 400
 
         shutil.copy(dockerFullPath, DOCKER_FOLDER + '/' + dockerName + "_folder" + "/Dockerfile")
@@ -186,6 +220,16 @@ class RESTDockers(Resource):
 
         return {'msg': 'success', 'data': data}, 200
 
+# 获取token
+class RESTToken(Resource):
+    def get(self):
+        try:
+            token = client.swarm.attrs['JoinTokens']['Worker']
+        except:
+            print("token error")
+            return {'msg': 'token error'}, 500
+        else:
+            return {'msg': 'success', 'token': token}, 200
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -202,6 +246,8 @@ api.add_resource(RESTDockerDeploy, '/dockerdeploy')
 api.add_resource(RESTComputingTasks, '/computingtasks')
 # docker信息获取
 api.add_resource(RESTDockers, '/dockers')
+# docker token获取
+api.add_resource(RESTToken, '/token')
 
 # ===================================================
 # 初始化工作目录
@@ -212,25 +258,28 @@ def initWorkSpace():
             os.makedirs(folder)
             print("mkdir " + folder + " success!")
 
-
+# 初始化Docker
+def initDocker():
+    global client
+    try:
+        client.swarm.init(advertise_addr="192.168.1.104")
+        ##获取worker加入Swarm所需密钥
+        workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
+        # print(workerJoinToken)
+    except Exception as e:
+        print(e)
 # ===================================================
 
 if __name__ == '__main__':
     SWARM_MANAGER_ADDR = "192.168.1.2:2377"
     # 初始化工作目录
     initWorkSpace()
-    try:
-        client.swarm.init(advertise_addr="192.168.1.1")
-    except:
-        sys.exit("Swarm init failed")
-
-    ##获取worker加入Swarm所需密钥
-    workerJoinToken = client.swarm.attrs['JoinTokens']['Worker']
-    print(workerJoinToken)
+    # 初始化Swarm
+    initDocker()
     # 添加协程
-    threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
+    # threads.append(gevent.spawn(app.run, host="0.0.0.0", port=5000, debug=True))  # flask web服务
 
     # 等待所有协程结束
-    gevent.joinall(threads)
+    # gevent.joinall(threads)
 
-    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

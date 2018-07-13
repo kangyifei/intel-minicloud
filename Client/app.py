@@ -9,6 +9,7 @@ import gevent
 import os
 import logging
 import requests
+import json
 
 FILE_FOLDER = './files'  # 上传文件目录
 DOCKER_FOLDER = FILE_FOLDER + '/docker' # docker文件存储目录
@@ -17,10 +18,9 @@ DATA_FOLDER = FILE_FOLDER + '/data' # 数据上传目录
 RESULT_FOLDER = FILE_FOLDER + '/result' # 结果上传目录
 ALLOWED_FOLDERS = [DOCKER_FOLDER, PROGRAM_FOLDER, DATA_FOLDER, RESULT_FOLDER] # 所有允许上传和文件目录集合
 
-BASE_URL = 'http://127.0.0.1:5000'
-MANAGER_ADDR="192.168.1.2:2377"
 
-JOIN_TOKEN=""
+SERVER_URL = 'http://127.0.0.1:5000'
+MANAGER_ADDR="192.168.1.104:2377"
 
 tasks = [] #任务列表
 
@@ -38,7 +38,7 @@ def infoUploadTask(client):
         }
 
         # 向服务器发送消息
-        status = requests.post(BASE_URL + '/nodeinfo', info)
+        status = requests.post(SERVER_URL + '/nodeinfo', info)
 
         logging.debug(status.text)
 
@@ -69,11 +69,24 @@ def initWorkSpace():
 # 初始化docker
 def initDocker():
     # 初始化docker
-    client = docker.from_env()
-    if not client.swarm.join(remote_addrs=[MANAGER_ADDR],join_token=JOIN_TOKEN):
+
+    try:
+        r = requests.get(SERVER_URL + '/token').text
+        res = json.loads(r)
+
+        token = res['token']
+
+        print(token)
+
+        client = docker.from_env()
+        if not client.swarm.join(remote_addrs=[MANAGER_ADDR],join_token=token):
+            sys.exit("swarm init failed")
+    except Exception as e:
+        print(e)
         sys.exit("swarm init failed")
 
-    return client
+    else:
+        return client
 
 # ================================================
 if __name__ == '__main__':
@@ -88,12 +101,12 @@ if __name__ == '__main__':
     # downloadAsync(url = 'http://127.0.0.1:5000/files/docker/app.py', fileFullName = './files/docker/app.py', callback= lambda: print('hello'))
     
     # # 初始化docker
-    # client = initDocker()
+    client = initDocker()
     
-    # # 创建多任务
-    # tasks.append(gevent.spawn(infoUploadTask, client)) # 添加 节点信息上传任务 
-    # tasks.append(gevent.spawn(getDocker))
-    # tasks.append(gevent.spawn(getComputingTask))
+    # 创建多任务
+    tasks.append(gevent.spawn(infoUploadTask, client)) # 添加 节点信息上传任务 
+    tasks.append(gevent.spawn(getDocker))
+    tasks.append(gevent.spawn(getComputingTask))
     
     # # 阻塞，直到所有协程结束
     gevent.joinall(tasks) 
