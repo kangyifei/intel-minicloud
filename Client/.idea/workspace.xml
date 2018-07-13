@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cdaccbda-75ff-4af9-b301-bcf817ca23b9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Server/ComputingShare.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/ComputingShare.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/GBRT/GBRT.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/GBRT/GBRT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Server/ImageBuild.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/ImageBuild.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/ServiceBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/ServiceBuilder.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Server/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../Server/app.py" afterDir="false" />
     </list>
@@ -57,8 +56,8 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="7">
-    <option name="x" value="141" />
-    <option name="y" value="269" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
     <option name="width" value="1536" />
     <option name="height" value="804" />
   </component>

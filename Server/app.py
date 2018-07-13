@@ -223,7 +223,8 @@ class RESTComputingTasks(Resource):
         try:
             computingShareTask = ComputingShareTask('task001', programFullName, dataFullName, nodesGBRT)
             computingShareTask.run()
-
+            if len(computingShareTask.avaiableNodesList)==0:
+                raise Exception
             computingShareService = ServiceBuilder(image=image,
                                                    name=programName,
                                                    nodelist=computingShareTask.avaiableNodesList

@@ -53,6 +53,7 @@ class ComputingShareTask(object):
                 avaiableNodesList.append(id)
 
 
+
     ##解压缩tar文件方法
     def __untar(self,file_name):
         tar = tarfile.open(file_name)
@@ -87,7 +88,7 @@ class ComputingShareTask(object):
             self.blocks.append(self.Block(self.programName, file, blk_id))
             blk_id += 1 # blk_id自增，与block在self.blocks[]中的位置索引相同
 
-        self.avaiableNodesList = self.__getAvaiableNodes(600, 30)
+        self.avaiableNodesList = self.__getAvaiableNodes(200, 50)
 
 
 
