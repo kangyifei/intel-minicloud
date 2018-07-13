@@ -9,7 +9,7 @@ class ImageBuilder(object):
 
     def __init__(self, dockerfile_folder_path,tag):
         self.__dockerfile_folder_path = dockerfile_folder_path
-        self.__tag=tag
+        self.__tag="192.168.2.182:9000/"+tag
     def build(self):
             image, log = self.client.images.build(path=self.__dockerfile_folder_path,tag=self.__tag)
             return image

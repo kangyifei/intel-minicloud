@@ -1,3 +1,5 @@
+from time import time
+
 from ServiceBuilder import ServiceBuilder
 
 import shutil
@@ -97,7 +99,7 @@ class RESTNodeInfo(Resource):
             # nodesGBRT[id].update([time], [cpu])
             pass
         else:
-            nodesGBRT[id] = GBRT(n_trees=100)
+            nodesGBRT[id] = GBRT(n_trees=300)
             # nodesGBRT[id].update([time], [cpu])
         ##结束
 
@@ -131,13 +133,14 @@ class RESTUpload(Resource):
     def get(self, folder):
         return {'msg': folder}
 
+
 # 单个任务接口
 class RESTComputingTask(Resource):
     def get(self, blk_id):
         pass
-    
+
     def put(self, blk_id):
-        
+
         if computingShareTask == None:
             return {'msg': 'no computing task'}, 400
 
@@ -153,10 +156,6 @@ class RESTComputingTask(Resource):
         else:
             return {'msg': 'args error'}, 400
 
-    
-
-
-       
 
 # 算力共享平台分发接口，接收参数为程序名和数据包名，其中，程序为单个可执行文件，数据包后缀为tar.gz
 class RESTComputingTasks(Resource):
@@ -168,25 +167,23 @@ class RESTComputingTasks(Resource):
             return {'msg': 'no computing task'}, 400
 
         args = parser.parse_args()
+        blks = computingShareTask.blocks
+        if 'type' in args and args['type'] == 'all':  # 如果是访问所有
 
-        if 'type' in args and args['type'] == 'all': # 如果是访问所有
-            blks = computingShareTask.blocks
             data = [ele.toJson() for ele in blks]
 
             return {'msg': 'success', 'data': data}, 200
-        
-        else: # 否则取单个任务
+
+        else:  # 否则取单个任务
             # 通过下标访问任务块，寻找第一个没有被分配的任务
             for i in range(len(blks)):
-                if(blks[i].status == 'stop'):
+                if (blks[i].status == 'stop'):
                     blks[i].status = 'running'
                     break
-
             if i == 0 or i == len(blks):
                 return {'msg': 'failed, no tasks remaining'}, 400
-            
             data = {
-                'blk_id': i, # 下标即为id
+                'blk_id': i,  # 下标即为id
                 'programName': blks[i].programName,
                 'dataName': blks[i].dataName
             }
@@ -194,7 +191,6 @@ class RESTComputingTasks(Resource):
 
             return {'msg': 'success', 'data': data}, 200
 
-        
     # 分发任务
     def post(self):
 
@@ -202,7 +198,6 @@ class RESTComputingTasks(Resource):
         global computingShareTask
         if computingShareTask != None:
             return {'msg': 'there is a task running'}, 400
-
 
         try:
             programName = request.form['programName']
@@ -233,7 +228,6 @@ class RESTComputingTasks(Resource):
                                                    name=programName,
                                                    nodelist=computingShareTask.avaiableNodesList
                                                    )
-            # computingTasks.newTask(programFullName, dataFullName, nodesGBRT)  # 新建算力共享任务
         except Exception as e:
             print(e)
             return {'msg': 'failed'}, 400
@@ -255,7 +249,7 @@ class RESTFiles(Resource):
             return {"msg": "file not exists"}, 410
         else:
             return {"msg": "delete success"}, 200
-    
+
     # 上传文件
     def post(self, filename):
         # 从请求体中获得文件
@@ -330,11 +324,18 @@ class RESTToken(Resource):
 
 class RESTPredict(Resource):
     def get(self, nodeid):
-
         # 预测时间序列
-        data = [25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56]
+        model=nodesGBRT[nodeid]
+        data=[]
+        for timenode in range(int(time()),int(time())+600,30):
+            data.append(model.predict(timenode,time_length=600))
+        if not len(data)==20:
+            data.append(data[-1])
+        # data = [25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56, 25, 35, 25, 56]
 
         return {'msg': 'success', 'data': data}, 200
+
+
 # ==================================================
 api = restful.Api(app)
 # 接口列表，将/example路由到RESTExample类
@@ -357,6 +358,7 @@ api.add_resource(RESTDockers, '/dockers')
 api.add_resource(RESTToken, '/token')
 # 预测序列
 api.add_resource(RESTPredict, '/predict/<string:nodeid>')
+
 
 # ===================================================
 # 初始化工作目录

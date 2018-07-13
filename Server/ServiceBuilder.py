@@ -15,7 +15,9 @@ class ServiceBuilder(object):
             client.services.create(image=self.__image,
                                    name=self.__name,
                                    mode=docker.types.ServiceMode
-                                   (mode="replicated", replicas=int(self.__replicas)), endpoint_spec=docker.types.EndpointSpec(mode='vip',ports={8000:8000}))
+                                   (mode="replicated", replicas=int(self.__replicas)),
+                                   endpoint_spec=docker.types.EndpointSpec(mode='vip', ports={8010: 8000}))
+
         else:
             for nodeid in self.__nodelist:
                 node = client.nodes.get(node_id=nodeid)
