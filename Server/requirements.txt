@@ -50,7 +50,7 @@ paho-mqtt==1.3.1
 pandas==0.20.3
 PDF==1.0
 pexpect==4.2.1
-Pillow==4.1.1
+Pillow==6.2.0
 psutil==5.0.1
 PyCRC==1.21
 pycrypto==2.6.1
