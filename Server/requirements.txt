@@ -18,7 +18,7 @@ defer==1.0.6
 dlib==19.9.0
 face-recognition==1.2.1
 face-recognition-models==0.3.0
-Flask==0.12.2
+Flask==1.0
 Flask-Cors==3.0.3
 Flask-RESTful==0.3.6
 gevent==1.1.2
