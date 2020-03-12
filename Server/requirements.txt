@@ -51,7 +51,7 @@ pandas==0.20.3
 PDF==1.0
 pexpect==4.2.1
 Pillow==4.1.1
-psutil==5.0.1
+psutil==5.6.6
 PyCRC==1.21
 pycrypto==2.6.1
 pycryptodome==3.4.11
